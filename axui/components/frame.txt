@@ -1,0 +1,115 @@
+--@name axui_frame
+--@author
+--@client
+
+axui.Frame = class("Frame")
+
+function axui.Frame:initialize(parent)
+    self.id = axui.globalCounter
+    axui.panels[axui.globalCounter] = self
+    axui.globalCounter = axui.globalCounter + 1
+    
+    self.parent = parent
+    self.childs = {}
+    self.context = nil
+    
+    if self.parent then
+        self.childID = table.insert(self.parent.childs, self)
+        self.context = self.parent.context
+    end
+    
+    self.isHovered = false
+    self.isPressed = false
+    self.lastKey = nil
+    
+    self.localPos = Vector(0, 0)
+    self.pos = Vector(0, 0)
+    self.size = { w = 100, h = 100}
+end
+
+function axui.Frame:__tostring()
+    return "Frame: [" .. self.id .. "]"
+end
+
+function axui.Frame:setContext(context)
+    self.context = context
+end
+
+function axui.Frame:setPos(x, y)
+    self.localPos = Vector(x, y)
+    self.pos = (self.parent and self.parent.pos + Vector(x, y)) or Vector(x, y)
+end
+
+function axui.Frame:getPos()
+    return (self.parent and self.pos - self.parent.pos) or self.pos
+end
+
+function axui.Frame:setSize(w, h)
+    self.size.w = w or self.size.w
+    self.size.h = h or self.size.h
+end
+
+function axui.Frame:setWidth(w)
+    self.size.w = w
+end
+
+function axui.Frame:setHeight(h)
+    self.size.h = h
+end
+
+function axui.Frame:think()
+
+end
+
+function axui.Frame:onHovered()
+
+end
+
+function axui.Frame:onLeftClick()
+
+end
+
+function axui.Frame:onRightClick()
+
+end
+
+function axui.Frame:paint(pos, size)
+    render.setColor(axui_frame_outline)
+    render.drawRoundedBox(4, pos.x - 1, pos.y - 1, size.w + 2, size.h + 2)
+
+    render.setColor(axui_frame_main)
+    render.drawRoundedBox(4, pos.x, pos.y, size.w, size.h)
+end
+
+function axui.Frame:render()
+    --local pos = (self.parent and (self.pos + self.parent.pos)) or self.pos
+    local size = self.size
+
+    self.pos = (self.parent and self.parent.pos + self.localPos) or self.localPos
+    self:paint(self.pos, size)
+    self:think()
+    
+    for i, child in ipairs(self.childs) do
+        child:render()
+    end
+end
+
+function axui.Frame:remove()
+    for i, child in ipairs(self.childs) do
+        child:remove()
+    end
+    
+    axui.print("remove: ", self)
+    
+    if self.parent then
+        local parent = self.parent
+        table.remove(parent.childs, self.childID)
+        
+        for i, child in ipairs(parent.childs) do
+            child.childID = i
+        end
+    end
+    
+    axui.panels[self.id] = nil
+    self = nil
+end

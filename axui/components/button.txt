@@ -1,0 +1,55 @@
+--@name axui_button
+--@author
+--@client
+
+axui.Button = class("Button", axui.Frame)
+
+function axui.Button:initialize(parent)
+    self.id = axui.globalCounter
+    axui.panels[axui.globalCounter] = self
+    axui.globalCounter = axui.globalCounter + 1
+    
+    self.parent = parent
+    self.childs = {}
+    
+    if self.parent then
+        self.childID = table.insert(self.parent.childs, self) 
+    end
+    
+    self.isHovered = false
+    self.isPressed = false
+    self.lastKey = nil
+
+    self.localPos = Vector(0, 0)
+    self.pos = Vector(0, 0)
+    self.size = { w = 100, h = 50}
+    
+    self.text = "Button"
+    self.font = axui.defaultFont
+end
+
+function axui.Button:setText(text)
+    self.text = text
+end
+
+function axui.Button:setFont(font)
+    self.font = font
+end
+
+function axui.Button:__tostring()
+    return "Button: [" .. self.id .. "]"
+end
+
+function axui.Button:paint(pos, size)
+    render.setColor(axui_frame_outline)
+    render.drawRoundedBox(4, pos.x - 1, pos.y - 1, size.w + 2, size.h + 2)
+
+    render.setColor((self.isPressed and axui_button_pressed) or (self.isHovered and axui_button_hovered) or axui_frame_main)
+    render.drawRoundedBox(4, pos.x, pos.y, size.w, size.h)
+
+    render.setColor(color_white)
+    render.setFont(self.font)
+    
+    local textW, textH = render.getTextSize(self.text)
+    render.drawText(pos.x + size.w / 2, pos.y - textH / 2 + size.h / 2, self.text, 1)
+end

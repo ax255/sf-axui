@@ -1,0 +1,60 @@
+--@name axui_hitbox
+--@author
+--@client
+
+local pressHolding = nil
+
+hook.add("render", "axui.Hitbox", function()
+    local cursorPos = Vector()
+    local sx, sy = render.cursorPos()
+    cursorPos.x = sx
+    cursorPos.y = sy
+
+    for i, panel in pairs(axui.panels) do
+        if pressHolding and pressHolding ~= panel then continue end
+
+        if (cursorPos.x and cursorPos.y) and cursorPos:withinAABox(panel.pos, panel.pos + Vector(panel.size.w, panel.size.h)) then
+            if panel.context == "screenRT" then
+                cursorPos.x = cursorPos.x * 2
+                cursorPos.y = cursorPos.y * 2
+            end
+            
+            panel.isHovered = true
+            panel:onHovered()
+
+            if player():keyDown(IN_KEY.ATTACK) then
+                if not panel.isPressed then
+                    panel:onLeftClick()
+                end
+                panel.lastKey = IN_KEY.ATTACK
+                panel.isPressed = true
+            elseif player():keyDown(IN_KEY.ATTACK2) then
+                if not panel.isPressed then
+                    panel:onRightClick()
+                end
+                panel.lastKey = IN_KEY.ATTACK2
+                panel.isPressed = true
+            elseif player():keyDown(IN_KEY.USE) then
+                if not panel.isPressed then
+                    panel:onLeftClick()
+                end
+                panel.lastKey = IN_KEY.USE
+                panel.isPressed = true
+            else
+                panel.isPressed = false
+            end
+        else
+            panel.isHovered = false
+
+            if panel.isPressed then
+                if not player():keyDown(panel.lastKey) then
+                    panel.isPressed = false
+                    pressHolding = nil
+                else
+                    pressHolding = panel
+                    break
+                end
+            end
+        end
+    end
+end)
