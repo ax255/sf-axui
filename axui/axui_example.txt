@@ -5,89 +5,156 @@
 dofile("axui/axui_init.txt")
 
 if SERVER then
-    local screen=chip():isWeldedTo()
+    local screen = prop.createComponent(chip():getPos() + Vector(0, 0, 50), Angle(90, 90, 90), "starfall_screen", "models/hunter/plates/plate2x2.mdl", true)
         
     if screen then
         screen:linkComponent(chip())
     end
 else
-    local Frame = axui.Frame()
-    Frame:setPos(30, 30)
-    Frame:setSize(300, 300)
-    
-    --Frame:setContext("screenRT")
-    
-    for i = 1, 5 do
-        local Button = axui.Button(Frame)
-        Button:setPos(i * 40, i * 40)
-        Button:setSize(80, 30)
+    do -- RT on SF Screen
+        local Frame = axui.Frame()
+        Frame:setPos(30, 30)
+        Frame:setSize(300, 300)
+        Frame:setContext("screenRT")
         
-        function Button:onLeftClick()
-            chip():emitSound("Buttons.snd3")
+        for i = 1, 5 do
+            local Button = axui.Button(Frame)
+            Button:setPos(i * 40, i * 40)
+            Button:setSize(80, 30)
+            
+            function Button:onLeftClick()
+                chip():emitSound("Buttons.snd3")
+            end
         end
+        
+        local speed = 50
+        local radius = 20
+        
+        local AvatarPanel = axui.Frame()
+        AvatarPanel:setPos(30, 360)
+        AvatarPanel:setSize(300, 150)
+        AvatarPanel:setContext("screenRT")
+        
+        local Avatar = axui.Avatar(AvatarPanel)
+        Avatar:setPos(10, 10)
+        Avatar:setSize(100, 100)
+        Avatar:setPlayer(owner())
+        
+        local Text = axui.Text(AvatarPanel)
+        Text:setPos(120, 10)
+        Text:setSize(170, 100)
+        Text:setAlign(TEXT_ALIGN.CENTER)
+        Text:setColor(Color(255, 150, 0))
+        Text:setText("Hello i am text balb blib qhjq qsiod qsod qjsod")
+    
+        render.createRenderTarget("ui")
+        local FPS = 30
+        local next_frame = 0
+        local fps_delta = 1/FPS
+    
+        hook.add("renderoffscreen", "ui", function()
+    
+            render.selectRenderTarget("ui")
+    
+            local now = timer.systime()
+            if next_frame > now then return end
+            next_frame = now + fps_delta
+            
+            render.clear(Color(0, 0, 0, 0))
+    
+            if Frame then
+                local X = math.floor(math.cos(math.rad( 360 + ( timer.curtime() * speed ) ) ) * radius)
+                local Y = math.floor(math.sin(math.rad( 360 + ( timer.curtime() * speed ) ) ) * radius)
+                
+                Frame:setPos(X + 30, Y + 30)
+                
+                Frame:render()
+            end
+            
+            AvatarPanel:render()
+    
+        end)
+    
+        hook.add("render", "screen", function()
+            render.setBackgroundColor(Color(255, 255, 255, 0))
+            render.setRenderTargetTexture("ui")
+            render.drawTexturedRect(0, 0, 512, 512)
+        end)
     end
     
-    local speed = 50
-    local radius = 20
-    
---[[
-    render.createRenderTarget("ui")
-    local FPS = 16
-    local next_frame = 0
-    local fps_delta = 1/FPS
-
-    hook.add("renderoffscreen", "ui", function()
-
-        render.selectRenderTarget("ui")
-
-        local now = timer.systime()
-        if next_frame > now then return end
-        next_frame = now + fps_delta
+    do -- Holo Screen
+        render.createRenderTarget("screen")
+        local screenMat = material.create("UnlitGeneric") 
+        screenMat:setTextureRenderTarget("$basetexture", "screen") 
+        screenMat:setInt("$flags", 256)
         
-        render.clear(Color(0, 0, 0, 0))
+        screenHolo = hologram.create(chip():getPos() + Vector(0, 100, 50), Angle(90, 0 ,0), "models/holograms/plane.mdl", Vector(7.5, 7.5, 0))
+        screenHolo:setMaterial("!"..screenMat:getName())
+        screenHolo:setParent(chip())
+        screenHolo:setFilterMag(1)
+        screenHolo:setFilterMin(1)
 
-        if Frame then
-            local X = math.floor(math.cos(math.rad( 360 + ( timer.curtime() * speed ) ) ) * radius)
-            local Y = math.floor(math.sin(math.rad( 360 + ( timer.curtime() * speed ) ) ) * radius)
+        local Frame = axui.Frame()
+        Frame:setPos(30, 30)
+        Frame:setSize(300, 300)
+        Frame:setContext(screenHolo)
+        
+        for i = 1, 5 do
+            local Button = axui.Button(Frame)
+            Button:setPos(i * 40, i * 40)
+            Button:setSize(80, 30)
             
-            Frame:setPos(X + 100, Y + 100)
-            
-            Frame:render()
-        end
-
-    end)
-]]
-
-    local AvatarPanel = axui.Frame()
-    AvatarPanel:setPos(30, 360)
-    AvatarPanel:setSize(300, 150)
-    
-    local Avatar = axui.Avatar(AvatarPanel)
-    Avatar:setPos(10, 10)
-    Avatar:setSize(100, 100)
-    Avatar:setPlayer(owner())
-    
-    local Text = axui.Text(AvatarPanel)
-    Text:setPos(120, 10)
-    Text:setSize(170, 100)
-    Text:setAlign(TEXT_ALIGN.CENTER)
-    Text:setColor(Color(255, 150, 0))
-    Text:setText("Hello i am text balb blib qhjq qsiod qsod qjsod")
-
-    hook.add("render", "screen", function()
-        render.setBackgroundColor(Color(255, 255, 255, 0))
-        --render.setRenderTargetTexture("ui")
-        --render.drawTexturedRect(0, 0, 512, 512)
-
-        if Frame then
-            local X = math.floor(math.cos(math.rad( 360 + ( timer.curtime() * speed ) ) ) * radius)
-            local Y = math.floor(math.sin(math.rad( 360 + ( timer.curtime() * speed ) ) ) * radius)
-            
-            Frame:setPos(X + 30, Y + 30)
-            
-            Frame:render()
+            function Button:onLeftClick()
+                chip():emitSound("Buttons.snd3")
+            end
         end
         
-        AvatarPanel:render()
-    end)
+        local speed = 50
+        local radius = 20
+        
+        local AvatarPanel = axui.Frame()
+        AvatarPanel:setPos(30, 360)
+        AvatarPanel:setSize(300, 150)
+        AvatarPanel:setContext(screenHolo)
+        
+        local Avatar = axui.Avatar(AvatarPanel)
+        Avatar:setPos(10, 10)
+        Avatar:setSize(100, 100)
+        Avatar:setPlayer(owner())
+        
+        local Text = axui.Text(AvatarPanel)
+        Text:setPos(120, 10)
+        Text:setSize(170, 100)
+        Text:setAlign(TEXT_ALIGN.CENTER)
+        Text:setColor(Color(255, 150, 0))
+        Text:setText("Hello i am text balb blib qhjq qsiod qsod qjsod")
+    
+        local FPS = 30
+        local next_frame = 0
+        local fps_delta = 1/FPS
+    
+        hook.add("renderoffscreen", "screenHolo", function()
+            --render.setFilterMag(1)
+            --render.setFilterMin(1)
+            render.selectRenderTarget("screen")
+
+            local now = timer.systime()
+            if next_frame > now then return end
+            next_frame = now + fps_delta
+
+            render.clear(Color(0, 0, 0, 0))
+    
+            if Frame then
+                local X = math.floor(math.cos(math.rad( 360 + ( timer.curtime() * speed ) ) ) * radius)
+                local Y = math.floor(math.sin(math.rad( 360 + ( timer.curtime() * speed ) ) ) * radius)
+                
+                Frame:setPos(X + 30, Y + 30)
+                
+                Frame:render()
+            end
+            
+            AvatarPanel:render()
+        end)
+    end
+
 end
