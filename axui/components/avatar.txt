@@ -36,6 +36,9 @@ function axui.Avatar:setPlayer(ply)
     self.ply = ply
     axui.requestAvatar(ply, function(url)
         self.url = url
+        if axui.debugMode then
+           axui.print(1, self, " got " .. ply:getName()) 
+        end
     end)
 end
 
