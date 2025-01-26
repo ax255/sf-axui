@@ -29,16 +29,23 @@ function getScreenPosOnHoloRT( Screen, StartPos, AimNormal ) -- toakley
     
 end
 
+axui.cursorSF = Vector(0, 0, 0)
+
 hook.add("render", "axui.Hitbox", function()
-    local cursorPos = Vector()
     local sx, sy = render.cursorPos()
-    cursorPos.x = sx
-    cursorPos.y = sy
+    axui.cursorSF.x = sx
+    axui.cursorSF.y = sy
+end)
+
+hook.add("renderoffscreen", "axui.Hitbox", function()
+    local cursorPos = Vector()
 
     for i, panel in pairs(axui.panels) do
         if pressHolding and pressHolding ~= panel then continue end
         if type(panel.context) == "Hologram" then
             cursorPos.x, cursorPos.y = getScreenPosOnHoloRT( panel.context, eyePos(), eyeVector() )
+        else
+            cursorPos = axui.cursorSF 
         end
 
         if (cursorPos.x and cursorPos.y) and cursorPos:withinAABox(panel.pos, panel.pos + Vector(panel.size.w, panel.size.h)) then
