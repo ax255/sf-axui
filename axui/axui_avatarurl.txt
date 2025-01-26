@@ -79,15 +79,22 @@ if SERVER then
     
 else
     local avatarCallback = {}
+    
+    local function callAvatarCallbacks(ply, url)
+        for i, callback in ipairs(avatarCallback[ply:getSteamID()]) do
+            callback(url)
+        end
+        avatarCallback[ply:getSteamID()] = nil
+    end
 
     function axui.requestAvatar(ply, func)
-        if AvatarCache[ply:getSteamID()] then return end
+        if AvatarCache[ply:getSteamID()] then func(AvatarCache[ply:getSteamID()]) return end
 
         net.start("axui_avatarurl")
         net.writeEntity(ply)
         net.send()
 
-        avatarCallback[ply:getSteamID()] = func
+        avatarCallback[ply:getSteamID()] = table.forceInsert(avatarCallback[ply:getSteamID()], func)
     end
 
     net.receive("axui_avatarurl", function()
@@ -96,8 +103,7 @@ else
         
         AvatarCache[plyAvatar:getSteamID()] = url
         if avatarCallback[plyAvatar:getSteamID()] then
-            avatarCallback[plyAvatar:getSteamID()](url)
-            avatarCallback[plyAvatar:getSteamID()] = nil 
+            callAvatarCallbacks(plyAvatar, url)
         end
     end)
 end
