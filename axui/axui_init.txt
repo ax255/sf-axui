@@ -1,50 +1,76 @@
 --@name axui_init
 --@author Ax25
---@client
+--@shared
 --@includedir axui
 --@includedir axui/components
+--@include https://raw.githubusercontent.com/ax255/SF-Collection/main/libs/Sprite%20Loader.lua as sprite_loader.lua
 
 axui = axui or {}
+axui.debugMode = true
 
-function axui.print(...)
-    print(Color(255, 0, 119), "[AXUI] ", Color(255, 255, 255), ...)
-end
-
-color_white = Color(255, 255, 255)
-color_black = Color(0, 0, 0)
-
-axui_frame_main = Color(40, 40, 40, 255)
-axui_frame_outline = Color(255, 0, 119)
-axui_frame_fill = Color()
-
-axui_button_hovered = Color(80, 80, 80)
-axui_button_pressed = Color(150, 150, 150)
-
-axui.globalCounter = 1
-axui.panels = {}
-
-axui.defaultFont = render.createFont(
-    "coolvetica", -- Font name
-    24, -- Size
-    500, -- Weight (how bold)
-    false, -- Antialias
-    false, -- Additive
-    false, -- Shadow
-    false, -- Outline
-    0, -- Blur size
-    true, -- Extended (Allow more UTF8 chars)
-    0 -- Scanlines
-)
-
-dofile("axui/axui_hitbox.txt")
-
-local scripts = table.getKeys(getScripts(chip()))
-
-for _, path in ipairs(scripts) do
-    local dir = string.explode("/", path)[2]
-
-    if dir == "components" then
-        axui.print("Loading: " .. path)
-        dofile(path)
+function axui.print(console, ...)
+    if console == 1 then
+        printConsole(Color(255, 0, 119), "[AXUI] ", Color(255, 255, 255), ...)
+    else
+        print(Color(255, 0, 119), "[AXUI] ", Color(255, 255, 255), ...)
     end
 end
+
+if CLIENT then
+    color_debug = Color(0, 150, 255, 150)
+    color_white = Color(255, 255, 255)
+    color_black = Color(0, 0, 0)
+    
+    axui_frame_main = Color(40, 40, 40, 255)
+    axui_frame_outline = Color(255, 0, 119)
+    axui_frame_fill = Color()
+    
+    axui_button_hovered = Color(80, 80, 80)
+    axui_button_pressed = Color(150, 150, 150)
+    
+    axui.globalCounter = 1
+    axui.panels = {}
+    
+    axui.defaultFont = render.createFont(
+        "coolvetica", -- Font name
+        24, -- Size
+        500, -- Weight (how bold)
+        false, -- Antialias
+        false, -- Additive
+        false, -- Shadow
+        false, -- Outline
+        0, -- Blur size
+        true, -- Extended (Allow more UTF8 chars)
+        0 -- Scanlines
+    )
+    
+    axui.debugFont = render.createFont(
+        "Roboto Mono",
+        12,
+        500,
+        false,
+        false,
+        false,
+        true,
+        0,
+        true,
+        0
+    )
+    
+    dofile("sprite_loader.lua")
+    setSpriteRes(256)
+    dofile("axui/axui_hitbox.txt")
+    
+    local scripts = table.getKeys(getScripts(chip()))
+    
+    for _, path in ipairs(scripts) do
+        local dir = string.explode("/", path)[2]
+    
+        if dir == "components" then
+            axui.print(1, "Loading: " .. path)
+            dofile(path)
+        end
+    end
+end
+
+dofile("axui/axui_avatarurl.txt")
