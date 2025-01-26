@@ -1,5 +1,5 @@
 --@name axui_button
---@author
+--@author Ax25
 --@client
 
 axui.Button = class("Button", axui.Frame)
