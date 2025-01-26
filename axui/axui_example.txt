@@ -2,6 +2,7 @@
 --@author Ax25
 --@shared
 --@include axui/axui_init.txt
+dofile("axui/axui_init.txt")
 
 if SERVER then
     local screen=chip():isWeldedTo()
@@ -10,10 +11,8 @@ if SERVER then
         screen:linkComponent(chip())
     end
 else
-    dofile("axui/axui_init.txt")
-    
     local Frame = axui.Frame()
-    Frame:setPos(100, 100)
+    Frame:setPos(30, 30)
     Frame:setSize(300, 300)
     
     --Frame:setContext("screenRT")
@@ -28,8 +27,8 @@ else
         end
     end
     
-    local speed = 30
-    local radius = 50
+    local speed = 50
+    local radius = 20
     
 --[[
     render.createRenderTarget("ui")
@@ -59,6 +58,22 @@ else
     end)
 ]]
 
+    local AvatarPanel = axui.Frame()
+    AvatarPanel:setPos(30, 360)
+    AvatarPanel:setSize(300, 150)
+    
+    local Avatar = axui.Avatar(AvatarPanel)
+    Avatar:setPos(10, 10)
+    Avatar:setSize(100, 100)
+    Avatar:setPlayer(owner())
+    
+    local Text = axui.Text(AvatarPanel)
+    Text:setPos(120, 10)
+    Text:setSize(170, 100)
+    Text:setAlign(TEXT_ALIGN.CENTER)
+    Text:setColor(Color(255, 150, 0))
+    Text:setText("Hello i am text balb blib qhjq qsiod qsod qjsod")
+
     hook.add("render", "screen", function()
         render.setBackgroundColor(Color(255, 255, 255, 0))
         --render.setRenderTargetTexture("ui")
@@ -68,9 +83,11 @@ else
             local X = math.floor(math.cos(math.rad( 360 + ( timer.curtime() * speed ) ) ) * radius)
             local Y = math.floor(math.sin(math.rad( 360 + ( timer.curtime() * speed ) ) ) * radius)
             
-            Frame:setPos(X + 100, Y + 100)
+            Frame:setPos(X + 30, Y + 30)
             
             Frame:render()
         end
+        
+        AvatarPanel:render()
     end)
 end
