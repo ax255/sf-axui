@@ -4,6 +4,31 @@
 
 local pressHolding = nil
 
+function getScreenPosOnHoloRT( Screen, StartPos, AimNormal ) -- toakley
+    
+    local Intersect = trace.intersectRayWithPlane( StartPos, AimNormal, Screen:getPos(), Screen:getAngles():getUp() )
+    if not Intersect then return nil, nil end
+    
+    local ScreenSize = Screen:getScale() * 12
+    local ScreenResolution = 1024
+    
+    local SizeToPixelRatioX = ScreenResolution / ScreenSize[1]
+    local SizeToPixelRatioY = ScreenResolution / ScreenSize[2]
+    
+    local ScreenCorner = localToWorld( Vector( -ScreenSize[1] / 2, -ScreenSize[2] / 2, 0 ), Angle(), Screen:getPos(), Screen:getAngles() ) 
+    local LocalIntersect = worldToLocal( Intersect, Angle(), ScreenCorner, Screen:getAngles() ) 
+    
+    local PixelY = LocalIntersect[1] * SizeToPixelRatioX
+    local PixelX = LocalIntersect[2] * SizeToPixelRatioY
+    
+    if ( (PixelX > 1024) or (PixelX < 0) ) or ( (PixelY > 1024) or (PixelY < 0) ) then
+       PixelX,PixelY = nil, nil 
+    else
+        return math.floor(PixelX), math.floor(PixelY)
+    end
+    
+end
+
 hook.add("render", "axui.Hitbox", function()
     local cursorPos = Vector()
     local sx, sy = render.cursorPos()
@@ -12,6 +37,9 @@ hook.add("render", "axui.Hitbox", function()
 
     for i, panel in pairs(axui.panels) do
         if pressHolding and pressHolding ~= panel then continue end
+        if type(panel.context) == "Hologram" then
+            cursorPos.x, cursorPos.y = getScreenPosOnHoloRT( panel.context, eyePos(), eyeVector() )
+        end
 
         if (cursorPos.x and cursorPos.y) and cursorPos:withinAABox(panel.pos, panel.pos + Vector(panel.size.w, panel.size.h)) then
             if panel.context == "screenRT" then
