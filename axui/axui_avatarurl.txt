@@ -1,0 +1,103 @@
+--@name
+--@author Ax25
+--@shared
+
+local AvatarCache = {}
+
+if SERVER then
+    local requesting = {}
+    
+    local function sendAvatar(ply, plyAvatar, url)
+        if axui.debugMode then
+            axui.print(1, "sending " .. plyAvatar:getName() .. " avatar to " .. ply:getName())
+        end
+
+        net.start("axui_avatarurl")
+        net.writeEntity(plyAvatar)
+        net.writeString(url)
+        net.send(ply)
+    end
+
+    net.receive("axui_avatarurl", function(_, ply)
+        local plyRequest = net.readEntity()
+        
+        if AvatarCache[plyRequest:getSteamID()] then
+            sendAvatar(ply, plyRequest, AvatarCache[plyRequest:getSteamID()])
+        else
+            axui.getAvatar(plyRequest, function(url)
+                AvatarCache[plyRequest:getSteamID()] = url
+                sendAvatar(ply, plyRequest, url)
+            end)
+        end
+    end)
+    
+    local function callAvatarCallbacks(ply, url)
+        AvatarCache[ply:getSteamID()] = url
+        if axui.debugMode then
+              axui.print(1, "Caching avatar for " .. ply:getName() .. " " .. url) 
+        end
+        
+        for i, callback in ipairs(requesting[ply:getSteamID()]) do
+            callback(url)
+        end
+        requesting[ply:getSteamID()] = nil
+    end
+    
+    function axui.getAvatar(ply, callback)
+        if not isValid( ply ) then return end
+        
+        if requesting[ply:getSteamID()] then
+            table.insert(requesting[ply:getSteamID()], callback)
+            return 
+        else
+            requesting[ply:getSteamID()] = {}
+            table.insert(requesting[ply:getSteamID()], callback)
+        end
+
+        if true then
+            callAvatarCallbacks(ply, "https://avatars.akamai.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg")
+            return
+        end
+
+        http.get("https://steamcommunity.com/profiles/" .. ply:getSteamID64() .. "?xml=1", function(body)
+            local charPos = string.find(body, "<avatarFull>", 0)
+            
+            if not charPos then 
+                callAvatarCallbacks(ply, "https://avatars.akamai.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg")
+                return 
+            end
+            
+            local avatar = string.left( string.sub(body,charPos+21,charPos+112), string.find(string.sub(body,charPos+21,charPos+112), ".jpg")+3 )
+
+            if not avatar then
+                callAvatarCallbacks(ply, "https://avatars.akamai.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg")
+            else
+                callAvatarCallbacks(ply, avatar)
+            end
+        end, function(err) print(err) end)
+    end
+    
+else
+    local avatarCallback = {}
+
+    function axui.requestAvatar(ply, func)
+        if AvatarCache[ply:getSteamID()] then return end
+
+        net.start("axui_avatarurl")
+        net.writeEntity(ply)
+        net.send()
+
+        avatarCallback[ply:getSteamID()] = func
+    end
+
+    net.receive("axui_avatarurl", function()
+        local plyAvatar = net.readEntity()
+        local url = net.readString()
+        
+        AvatarCache[plyAvatar:getSteamID()] = url
+        if avatarCallback[plyAvatar:getSteamID()] then
+            avatarCallback[plyAvatar:getSteamID()](url)
+            avatarCallback[plyAvatar:getSteamID()] = nil 
+        end
+    end)
+end
