@@ -1,6 +1,6 @@
 --@name axui_frame
 --@author
---@client
+--@client Ax25
 
 axui.Frame = class("Frame")
 
@@ -91,6 +91,19 @@ function axui.Frame:render()
     
     for i, child in ipairs(self.childs) do
         child:render()
+    end
+    
+    if axui.debugMode then
+        render.setFont(axui.debugFont)
+        render.setColor(color_debug)
+        
+        render.drawText(self.pos.x + self.size.w / 2, self.pos.y, tostring(self), 1)
+        
+        if self.isHovered then
+            render.drawText(self.pos.x + self.size.w / 2, self.pos.y + 10, string.format("X=%s Y=%s", self.pos.x, self.pos.y) , 1)
+            render.drawText(self.pos.x + self.size.w / 2, self.pos.y + 20, string.format("W=%s H=%s", self.size.w, self.size.h), 1)
+            render.drawText(self.pos.x + self.size.w / 2, self.pos.y + 30, tostring(self.parent), 1)
+        end
     end
 end
 
