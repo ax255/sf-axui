@@ -1,0 +1,70 @@
+--@name axui_text
+--@author Ax25
+--@client
+
+axui.Text = class("Text", axui.Frame)
+
+function axui.Text:initialize(parent)
+    self.id = axui.globalCounter
+    axui.panels[axui.globalCounter] = self
+    axui.globalCounter = axui.globalCounter + 1
+    
+    self.parent = parent
+    self.childs = {}
+    
+    if self.parent then
+        self.childID = table.insert(self.parent.childs, self) 
+    end
+    
+    self.isHovered = false
+    self.isPressed = false
+    self.lastKey = nil
+
+    self.localPos = Vector(0, 0)
+    self.pos = Vector(0, 0)
+    self.size = { w = 100, h = 50}
+    
+    self.text = "Text"
+    self.font = axui.defaultFont
+    self.color = Color(255, 255, 255)
+    self.mk = nil
+    self.align = TEXT_ALIGN.LEFT
+end
+
+function axui.Text:parseMk()
+    local col = self.color
+    self.mk = render.parseMarkup("<font="..self.font..">" .. "<color="..col.r..","..col.g..","..col.b..">" .. self.text, self.size.w)
+end
+
+function axui.Text:setText(text)
+    self.text = text
+    self:parseMk()
+end
+
+function axui.Text:setColor(col)
+    self.color = col
+end
+
+function axui.Text:setAlign(align)
+    self.align = align
+end
+
+function axui.Text:setFont(font)
+    self.font = font
+end
+
+function axui.Text:__tostring()
+    return "Text: [" .. self.id .. "]"
+end
+
+function axui.Text:paint(pos, size)
+    --render.setFont(self.font)
+    --local textW, textH = render.getTextSize(self.text)
+
+    render.setColor(axui_frame_outline)
+    render.drawRectOutline(pos.x, pos.y, size.w, size.h)
+
+    self.mk:draw(pos.x, pos.y, 0, 0, 255, self.align)
+    --render.setColor(color_white)
+    --render.drawText(pos.x, pos.y, self.text, self.align)
+end

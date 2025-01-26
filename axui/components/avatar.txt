@@ -1,0 +1,55 @@
+--@name axui_avatar
+--@author
+--@client
+
+axui.Avatar = class("Avatar", axui.Frame)
+
+function axui.Avatar:initialize(parent)
+    self.id = axui.globalCounter
+    axui.panels[axui.globalCounter] = self
+    axui.globalCounter = axui.globalCounter + 1
+    
+    self.parent = parent
+    self.childs = {}
+    
+    if self.parent then
+        self.childID = table.insert(self.parent.childs, self) 
+    end
+    
+    self.isHovered = false
+    self.isPressed = false
+    self.lastKey = nil
+
+    self.localPos = Vector(0, 0)
+    self.pos = Vector(0, 0)
+    self.size = { w = 100, h = 50}
+    
+    self.ply = nil
+    self.url = nil
+end
+
+function axui.Avatar:__tostring()
+    return "Avatar: [" .. self.id .. "]"
+end
+
+function axui.Avatar:setPlayer(ply)
+    self.ply = ply
+    axui.requestAvatar(ply, function(url)
+        self.url = url
+    end)
+end
+
+function axui.Avatar:paint(pos, size)
+    render.setColor(axui_frame_outline)
+    render.drawRect(pos.x - 1, pos.y - 1, size.w + 2, size.h + 2)
+
+    render.setColor(axui_frame_main)
+    render.drawRect(pos.x, pos.y, size.w, size.h)
+    
+    if self.ply and self.url then
+        render.setColor(color_white)
+        if not drawSprite(self.url, pos.x, pos.y, size.w, size.h) then
+            addSprite(self.url, self.url)
+        end 
+    end
+end
