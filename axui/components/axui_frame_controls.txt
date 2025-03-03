@@ -41,6 +41,12 @@ function axui.FrameControls:createControls()
     end
     
     function self.dragControl:paint(pos, size)
+        render.setColor(axui_frame_outline)
+        render.drawRoundedBoxEx(4, pos.x - 1, pos.y - 1, size.w + 2, size.h + 2, true, true, false, false)
+        
+        render.setColor(axui_frame_main)
+        render.drawRoundedBoxEx(4, pos.x, pos.y, size.w, size.h, true, true, false, false)
+    
         render.setColor(color_white)
         render.setFont(parent.font)
         
@@ -52,6 +58,16 @@ function axui.FrameControls:createControls()
     self.closeButton:setPos(w - 35, 5)
     self.closeButton:setSize(30, 25)
     self.closeButton:setText("")
+    
+    local _paint = self.closeButton.paint -- keeping original paint
+    
+    function self.closeButton:paint(pos, size)
+        _paint(self, pos, size)
+        
+        render.setColor(color_white)
+        render.setMaterial(axui_cross)
+        render.drawTexturedRect(pos.x, pos.y, size.w, size.h)
+    end
 
     function self.closeButton:onLeftClick()
         parent:remove()
@@ -94,10 +110,4 @@ function axui.FrameControls:paint(pos, size)
 
     render.setColor(axui_frame_main)
     render.drawRoundedBox(4, pos.x, pos.y, size.w, size.h)
-
-    --render.setColor(color_white)
-    --render.setFont(self.font)
-    
-    --local textW, textH = render.getTextSize(self.title)
-    --render.drawText(pos.x, pos.y, self.title)
 end
