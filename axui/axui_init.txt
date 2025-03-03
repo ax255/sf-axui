@@ -27,6 +27,8 @@ if CLIENT then
     
     axui_button_hovered = Color(80, 80, 80)
     axui_button_pressed = Color(150, 150, 150)
+
+    axui_cross = material.createFromImage("icon16/cross.png", "")
     
     axui.globalCounter = 1
     axui.panels = {}
