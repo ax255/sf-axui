@@ -37,6 +37,100 @@ hook.add("render", "axui.Hitbox", function()
     axui.cursorSF.y = sy
 end)
 
+local function checkPanelHitbox(panel)
+    local cursorPos = Vector()
+    
+    if panel.childs then
+        --for i, pan in ipairs(panel.childs) do
+            --checkPanelHitbox(pan)
+        --end
+        for i = #panel.childs, 1, -1 do
+            checkPanelHitbox(panel.childs[i])
+        end
+    end
+
+    if pressHolding and pressHolding ~= panel then
+        return
+    end
+
+    if type(panel.context) == "Hologram" then
+        cursorPos.x, cursorPos.y = getScreenPosOnHoloRT(panel.context, eyePos(), eyeVector())
+    else
+        cursorPos.x = axui.cursorSF.x
+        cursorPos.y = axui.cursorSF.y
+
+        if (cursorPos.x and cursorPos.y) and panel.context == "screenRT" then
+            cursorPos.x = cursorPos.x * 2
+            cursorPos.y = cursorPos.y * 2
+
+            render.selectRenderTarget("ui")
+            render.drawRect(cursorPos.x - 5, cursorPos.y - 5, 10, 10)
+        elseif panel.context == "hud" then
+            cursorPos.x, cursorPos.y = input.getCursorPos()
+        end
+    end
+
+    panel.cursorPos = cursorPos
+
+    if cursorPos.x and cursorPos.y and cursorPos:withinAABox(panel.pos, panel.pos + Vector(panel.size.w, panel.size.h)) then
+        if not pressHolding then
+            panel.isHovered = true
+            panel:onHovered()
+        end
+
+        local isMousePressed = player():keyDown(IN_KEY.ATTACK) or input.isMouseDown(MOUSE.LEFT)
+        if isMousePressed then
+            if not panel.isPressed then
+                panel:onLeftClick()
+                panel.isPressed = true
+                pressHolding = panel
+                panel.lastKey = (panel.context == "hud" and MOUSE.LEFT) or IN_KEY.ATTACK
+            end
+        end
+
+        local isRightClick = player():keyDown(IN_KEY.ATTACK2) or input.isMouseDown(MOUSE.RIGHT)
+        if isRightClick then
+            if not panel.isPressed then
+                panel:onRightClick()
+                panel.isPressed = true
+                pressHolding = panel
+                panel.lastKey = (panel.context == "hud" and MOUSE.RIGHT) or IN_KEY.ATTACK2
+            end
+        end
+
+        local isUseKey = player():keyDown(IN_KEY.USE)
+        if isUseKey then
+            if not panel.isPressed then
+                panel:onLeftClick()
+                panel.isPressed = true
+                pressHolding = panel
+                panel.lastKey = IN_KEY.USE
+            end
+        end
+    else
+        panel.isHovered = false
+    end
+end
+
+hook.add("renderoffscreen", "axui.Hitbox", function()
+    for i, panel in ipairs(axui.mainPanels) do
+        checkPanelHitbox(panel)
+    end
+
+    if pressHolding then
+        local panel = pressHolding
+        if (panel.context == "hud" and not input.isMouseDown(panel.lastKey)) or 
+           (panel.context ~= "hud" and not player():keyDown(panel.lastKey)) then
+            panel.isPressed = false
+            pressHolding = nil
+        end
+    end
+    
+    render.selectRenderTarget("ui")
+    render.drawText(0, 0, tostring(pressHolding) or nil)
+end)
+
+--[[
 hook.add("renderoffscreen", "axui.Hitbox", function()
     for i, panel in pairs(axui.panels) do
         if pressHolding and pressHolding ~= panel then continue end
@@ -54,6 +148,8 @@ hook.add("renderoffscreen", "axui.Hitbox", function()
 
                 render.selectRenderTarget("ui")
                 render.drawRect(cursorPos.x - 5, cursorPos.y - 5, 10, 10)
+            elseif panel.context == "hud" then
+                cursorPos.x, cursorPos.y = input.getCursorPos()
             end
         end
         
@@ -63,17 +159,17 @@ hook.add("renderoffscreen", "axui.Hitbox", function()
             panel.isHovered = true
             panel:onHovered()
 
-            if player():keyDown(IN_KEY.ATTACK) then
+            if player():keyDown(IN_KEY.ATTACK) or input.isMouseDown(MOUSE.LEFT) then
                 if not panel.isPressed then
                     panel:onLeftClick()
                 end
-                panel.lastKey = IN_KEY.ATTACK
+                panel.lastKey = (panel.context == "hud" and MOUSE.LEFT) or IN_KEY.ATTACK
                 panel.isPressed = true
-            elseif player():keyDown(IN_KEY.ATTACK2) then
+            elseif player():keyDown(IN_KEY.ATTACK2) or input.isMouseDown(MOUSE.RIGHT) then
                 if not panel.isPressed then
                     panel:onRightClick()
                 end
-                panel.lastKey = IN_KEY.ATTACK2
+                panel.lastKey = (panel.context == "hud" and MOUSE.RIGHT) or IN_KEY.ATTACK2
                 panel.isPressed = true
             elseif player():keyDown(IN_KEY.USE) then
                 if not panel.isPressed then
@@ -88,7 +184,7 @@ hook.add("renderoffscreen", "axui.Hitbox", function()
             panel.isHovered = false
 
             if panel.isPressed then
-                if not player():keyDown(panel.lastKey) then
+                if (panel.context == "hud" and not input.isMouseDown(panel.lastKey)) or (panel.context ~= "hud" and not player():keyDown(panel.lastKey)) then
                     panel.isPressed = false
                     pressHolding = nil
                 else
@@ -97,5 +193,9 @@ hook.add("renderoffscreen", "axui.Hitbox", function()
                 end
             end
         end
+        
+        render.selectRenderTarget("ui")
+        render.drawText(0, 0, tostring(pressHolding) or "nil")
     end
 end)
+]]
