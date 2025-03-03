@@ -17,7 +17,7 @@ function axui.print(console, ...)
 end
 
 if CLIENT then
-    color_debug = Color(0, 150, 255, 150)
+    color_debug = Color(0, 150, 255, 200)
     color_white = Color(255, 255, 255)
     color_black = Color(0, 0, 0)
     
@@ -46,8 +46,8 @@ if CLIENT then
     
     axui.debugFont = render.createFont(
         "Roboto Mono",
-        12,
-        500,
+        16,
+        300,
         false,
         false,
         false,
