@@ -30,6 +30,7 @@ if CLIENT then
     
     axui.globalCounter = 1
     axui.panels = {}
+    axui.mainPanels = {}
     
     axui.defaultFont = render.createFont(
         "coolvetica", -- Font name
