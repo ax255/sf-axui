@@ -54,11 +54,6 @@ if SERVER then
             table.insert(requesting[ply:getSteamID()], callback)
         end
 
-        if true then
-            callAvatarCallbacks(ply, "https://avatars.akamai.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg")
-            return
-        end
-
         http.get("https://steamcommunity.com/profiles/" .. ply:getSteamID64() .. "?xml=1", function(body)
             local charPos = string.find(body, "<avatarFull>", 0)
             
@@ -89,6 +84,7 @@ else
 
     function axui.requestAvatar(ply, func)
         if AvatarCache[ply:getSteamID()] then func(AvatarCache[ply:getSteamID()]) return end
+        if avatarCallback[ply:getSteamID()] then table.insert(avatarCallback[ply:getSteamID()], func) return end
 
         net.start("axui_avatarurl")
         net.writeEntity(ply)
