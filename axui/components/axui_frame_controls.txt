@@ -1,0 +1,103 @@
+--@name axui_frame_controls
+--@author Ax25
+--@client
+
+axui.FrameControls = class("FrameControls", axui.Frame)
+
+function axui.FrameControls:initialize(parent)
+    axui.FrameControls.super.initialize(self, parent)
+
+    self.size = { w = 100, h = 50}
+    
+    self.isDraggable = true
+    self.isDragging = false
+    self.title = "Draggable panel"
+    self.font = axui.defaultFont
+end
+
+function axui.FrameControls:createControls()
+    local parent = self
+    local w, h = self:getSize()
+    
+    self.dragControl = axui.Frame(self)
+    self.dragControl:setPos(0, 0)
+    self.dragControl:setSize(w, 35)
+    
+    function self.dragControl:onLeftClick()
+        if not parent.isDraggable then return end
+
+        self.isDragging = true
+        self.dragOffset = parent:getPos() - self.cursorPos
+    end
+    
+    function self.dragControl:think()
+        if not parent.isDraggable then return end
+
+        if self.isDragging and self.isPressed and self.cursorPos.x and self.cursorPos.y then
+            parent:setPos(self.cursorPos + self.dragOffset)
+        else
+            self.isDragging = false
+        end
+    end
+    
+    function self.dragControl:paint(pos, size)
+        render.setColor(color_white)
+        render.setFont(parent.font)
+        
+        local textW, textH = render.getTextSize(parent.title)
+        render.drawText(pos.x + 5, pos.y + size.h / 4, parent.title)
+    end
+
+    self.closeButton = axui.Button(self)
+    self.closeButton:setPos(w - 35, 5)
+    self.closeButton:setSize(30, 25)
+    self.closeButton:setText("")
+
+    function self.closeButton:onLeftClick()
+        parent:remove()
+        chip():emitSound("Buttons.snd3")
+    end
+end
+
+function axui.FrameControls:updateControls()
+    if not self.closeButton then return end
+
+    local w, h = self:getSize()
+
+    self.closeButton:setPos(w - 35, 5)
+    self.closeButton:setSize(30, 30)
+end
+
+function axui.FrameControls:layoutUpdate()
+    self:updateControls()
+end
+
+function axui.FrameControls:setDraggable(drag)
+    self.isDraggable = drag
+end
+
+function axui.FrameControls:setTitle(text)
+    self.title = text
+end
+
+function axui.FrameControls:setFont(font)
+    self.font = font
+end
+
+function axui.FrameControls:__tostring()
+    return "FrameControls: [" .. self.id .. "]"
+end
+
+function axui.FrameControls:paint(pos, size)
+    render.setColor(axui_frame_outline)
+    render.drawRoundedBox(4, pos.x - 1, pos.y - 1, size.w + 2, size.h + 2)
+
+    render.setColor(axui_frame_main)
+    render.drawRoundedBox(4, pos.x, pos.y, size.w, size.h)
+
+    --render.setColor(color_white)
+    --render.setFont(self.font)
+    
+    --local textW, textH = render.getTextSize(self.title)
+    --render.drawText(pos.x, pos.y, self.title)
+end
