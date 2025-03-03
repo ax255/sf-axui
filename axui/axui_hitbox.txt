@@ -38,22 +38,28 @@ hook.add("render", "axui.Hitbox", function()
 end)
 
 hook.add("renderoffscreen", "axui.Hitbox", function()
-    local cursorPos = Vector()
-
     for i, panel in pairs(axui.panels) do
         if pressHolding and pressHolding ~= panel then continue end
+        local cursorPos = Vector()
+
         if type(panel.context) == "Hologram" then
             cursorPos.x, cursorPos.y = getScreenPosOnHoloRT( panel.context, eyePos(), eyeVector() )
         else
-            cursorPos = axui.cursorSF 
-        end
-
-        if (cursorPos.x and cursorPos.y) and cursorPos:withinAABox(panel.pos, panel.pos + Vector(panel.size.w, panel.size.h)) then
-            if panel.context == "screenRT" then
+            cursorPos.x = axui.cursorSF.x
+            cursorPos.y = axui.cursorSF.y
+            
+            if (cursorPos.x and cursorPos.y) and panel.context == "screenRT" then
                 cursorPos.x = cursorPos.x * 2
                 cursorPos.y = cursorPos.y * 2
+
+                render.selectRenderTarget("ui")
+                render.drawRect(cursorPos.x - 5, cursorPos.y - 5, 10, 10)
             end
-            
+        end
+        
+        panel.cursorPos = cursorPos
+
+        if (cursorPos.x and cursorPos.y) and cursorPos:withinAABox(panel.pos, panel.pos + Vector(panel.size.w, panel.size.h)) then
             panel.isHovered = true
             panel:onHovered()
 
