@@ -5,23 +5,8 @@
 axui.Avatar = class("Avatar", axui.Frame)
 
 function axui.Avatar:initialize(parent)
-    self.id = axui.globalCounter
-    axui.panels[axui.globalCounter] = self
-    axui.globalCounter = axui.globalCounter + 1
-    
-    self.parent = parent
-    self.childs = {}
-    
-    if self.parent then
-        self.childID = table.insert(self.parent.childs, self) 
-    end
-    
-    self.isHovered = false
-    self.isPressed = false
-    self.lastKey = nil
+    axui.Text.super.initialize(self, parent)
 
-    self.localPos = Vector(0, 0)
-    self.pos = Vector(0, 0)
     self.size = { w = 100, h = 50}
     
     self.ply = nil
