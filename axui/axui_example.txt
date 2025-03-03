@@ -10,6 +10,12 @@ if SERVER then
     if screen then
         screen:linkComponent(chip())
     end
+    
+    local hud = prop.createComponent(chip():getPos() + Vector(0, -100, 50), Angle(90, 90, 90), "starfall_hud", "models/bull/dynamicbuttonsf.mdl", true)
+        
+    if hud then
+        hud:linkComponent(chip())
+    end
 else
     do -- RT on SF Screen
         local Frame = axui.Frame()
@@ -30,25 +36,26 @@ else
         local speed = 50
         local radius = 20
         
-        local AvatarPanel = axui.Frame()
+        local AvatarPanel = axui.FrameControls()
         AvatarPanel:setPos(30, 360)
         AvatarPanel:setSize(300, 150)
         AvatarPanel:setContext("screenRT")
-        
+        AvatarPanel:createControls()
+
         local Avatar = axui.Avatar(AvatarPanel)
-        Avatar:setPos(10, 10)
+        Avatar:setPos(10, 40)
         Avatar:setSize(100, 100)
         Avatar:setPlayer(owner())
         
         local Text = axui.Text(AvatarPanel)
-        Text:setPos(120, 10)
+        Text:setPos(120, 40)
         Text:setSize(170, 100)
         Text:setAlign(TEXT_ALIGN.CENTER)
         Text:setColor(Color(255, 150, 0))
         Text:setText("Hello i am text balb blib qhjq qsiod qsod qjsod")
     
         render.createRenderTarget("ui")
-        local FPS = 30
+        local FPS = 60
         local next_frame = 0
         local fps_delta = 1/FPS
     
@@ -70,9 +77,8 @@ else
                 
                 Frame:render()
             end
-            
+
             AvatarPanel:render()
-    
         end)
     
         hook.add("render", "screen", function()
@@ -81,7 +87,7 @@ else
             render.drawTexturedRect(0, 0, 512, 512)
         end)
     end
-    
+
     do -- Holo Screen
         render.createRenderTarget("screen")
         local screenMat = material.create("UnlitGeneric") 
@@ -112,18 +118,20 @@ else
         local speed = 50
         local radius = 20
         
-        local AvatarPanel = axui.Frame()
+        local AvatarPanel = axui.FrameControls()
         AvatarPanel:setPos(30, 360)
         AvatarPanel:setSize(300, 150)
         AvatarPanel:setContext(screenHolo)
-        
+        AvatarPanel:createControls()
+        --AvatarPanel:setDraggable(false)
+
         local Avatar = axui.Avatar(AvatarPanel)
-        Avatar:setPos(10, 10)
+        Avatar:setPos(10, 40)
         Avatar:setSize(100, 100)
         Avatar:setPlayer(owner())
         
         local Text = axui.Text(AvatarPanel)
-        Text:setPos(120, 10)
+        Text:setPos(120, 40)
         Text:setSize(170, 100)
         Text:setAlign(TEXT_ALIGN.CENTER)
         Text:setColor(Color(255, 150, 0))
@@ -153,8 +161,77 @@ else
                 Frame:render()
             end
             
-            AvatarPanel:render()
+            if AvatarPanel then
+                AvatarPanel:render()
+            end
         end)
     end
+    
+    do -- hud panel
+        hook.add("HUDConnected", "axui_exemple", function()
+            input.enableCursor(true)
 
+            local Frame = axui.Frame()
+            Frame:setPos(30, 30)
+            Frame:setSize(300, 300)
+            Frame:setContext("hud")
+            
+            for i = 1, 5 do
+                local Button = axui.Button(Frame)
+                Button:setPos(i * 40, i * 40)
+                Button:setSize(80, 30)
+                
+                function Button:onLeftClick()
+                    chip():emitSound("Buttons.snd3")
+                end
+            end
+            
+            local speed = 50
+            local radius = 20
+            
+            local AvatarPanel = axui.FrameControls()
+            AvatarPanel:setPos(30, 360)
+            AvatarPanel:setSize(300, 150)
+            AvatarPanel:setContext("hud")
+            AvatarPanel:createControls()
+    
+            local Avatar = axui.Avatar(AvatarPanel)
+            Avatar:setPos(10, 40)
+            Avatar:setSize(100, 100)
+            Avatar:setPlayer(owner())
+            
+            local Text = axui.Text(AvatarPanel)
+            Text:setPos(120, 40)
+            Text:setSize(170, 100)
+            Text:setAlign(TEXT_ALIGN.CENTER)
+            Text:setColor(Color(255, 150, 0))
+            Text:setText("Hello i am text balb blib qhjq qsiod qsod qjsod")
+
+            hook.add("drawhud", "axui_exempleHud", function()
+                if input.isKeyDown(KEY.ESCAPE) then
+                    input.enableCursor(false)
+                end
+                
+                
+                if Frame then
+                    local X = math.floor(math.cos(math.rad( 360 + ( timer.curtime() * speed ) ) ) * radius)
+                    local Y = math.floor(math.sin(math.rad( 360 + ( timer.curtime() * speed ) ) ) * radius)
+                    
+                    Frame:setPos(X + 30, Y + 30)
+                    
+                    Frame:render()
+                end
+                
+                if AvatarPanel then
+                    AvatarPanel:render()
+                end
+            end)
+            
+            hook.add("HUDDisconnected", "axui_exemple", function()
+                hook.remove("drawhud", "axui_exempleHud")
+                Frame:remove()
+                AvatarPanel:remove()
+            end)
+        end)
+    end
 end
