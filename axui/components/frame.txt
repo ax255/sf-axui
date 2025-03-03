@@ -36,8 +36,10 @@ function axui.Frame:setContext(context)
 end
 
 function axui.Frame:setPos(x, y)
-    self.localPos = Vector(x, y)
-    self.pos = (self.parent and self.parent.pos + Vector(x, y)) or Vector(x, y)
+    local vec = (type(x) == "Vector" and x) or Vector(x, y)
+
+    self.localPos = vec
+    self.pos = (self.parent and self.parent.pos + vec) or vec
 end
 
 function axui.Frame:getPos()
@@ -47,6 +49,12 @@ end
 function axui.Frame:setSize(w, h)
     self.size.w = w or self.size.w
     self.size.h = h or self.size.h
+    
+    self:layoutUpdate()
+end
+
+function axui.Frame:getSize()
+    return self.size.w, self.size.h
 end
 
 function axui.Frame:setWidth(w)
@@ -70,6 +78,10 @@ function axui.Frame:onLeftClick()
 end
 
 function axui.Frame:onRightClick()
+
+end
+
+function axui.Frame:layoutUpdate()
 
 end
 
@@ -103,6 +115,7 @@ function axui.Frame:render()
             render.drawText(self.pos.x + self.size.w / 2, self.pos.y + 10, string.format("X=%s Y=%s", self.pos.x, self.pos.y) , 1)
             render.drawText(self.pos.x + self.size.w / 2, self.pos.y + 20, string.format("W=%s H=%s", self.size.w, self.size.h), 1)
             render.drawText(self.pos.x + self.size.w / 2, self.pos.y + 30, tostring(self.parent), 1)
+            render.drawText(self.pos.x + self.size.w / 2, self.pos.y + 40, tostring(self.context), 1)
         end
     end
 end
@@ -112,7 +125,7 @@ function axui.Frame:remove()
         child:remove()
     end
     
-    axui.print("remove: ", self)
+    axui.print(1, "remove: ", self)
     
     if self.parent then
         local parent = self.parent
@@ -124,5 +137,16 @@ function axui.Frame:remove()
     end
     
     axui.panels[self.id] = nil
+
+    for i, v in pairs(self) do
+        v = nil
+    end
+    
+    setmetatable(self, {
+        __index = function()
+            return function() end
+        end
+    })
+
     self = nil
 end
